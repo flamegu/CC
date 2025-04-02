@@ -1,0 +1,171 @@
+Q) TCP Prime Number
+
+# TcpServerPrime.java
+import java.net.*;
+import java.io.*;
+
+class TcpServerPrime {
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(8001)) {
+            System.out.println("Server started and waiting for a connection...");
+
+            // Accept client connection
+            try (Socket socket = serverSocket.accept();
+                 DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+                 DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream())) {
+
+                System.out.println("Client connected!");
+
+                // Read input number
+                int number = inputStream.readInt();
+                boolean isPrime = checkPrime(number);
+
+                // Send response to client
+                if (isPrime) {
+                    outputStream.writeUTF(number + " is Prime");
+                } else {
+                    outputStream.writeUTF(number + " is not Prime");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Method to check if a number is prime
+    private static boolean checkPrime(int num) {
+        if (num <= 1) return false;
+        if (num <= 3) return true;
+        if (num % 2 == 0 || num % 3 == 0) return false;
+        for (int i = 5; i * i <= num; i += 6) {
+            if (num % i == 0 || num % (i + 2) == 0) return false;
+        }
+        return true;
+    }
+}
+
+# TcpClientPrime.java
+import java.net.*;
+import java.io.*;
+
+class TcpClientPrime {
+    public static void main(String[] args) {
+        try {
+            // Connect to the server running on localhost at port 8001
+            Socket clientSocket = new Socket("localhost", 8001);
+
+            // Input stream to read data from the user
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter a number: ");
+            int number = Integer.parseInt(userInput.readLine());
+
+            // Send the number to the server
+            DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+            outputStream.writeInt(number);
+
+            // Receive the response from the server
+            DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
+            System.out.println("Server response: " + inputStream.readUTF());
+
+            // Close the connection
+            clientSocket.close();
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
+
+Q) chatting 
+# ChatServer.java
+import java.net.*;
+import java.io.*;
+
+class ChatServer {
+    public static void main(String args[]) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(8000);
+            System.out.println("Waiting for client to connect...");
+            
+            Socket socket = serverSocket.accept();
+            System.out.println("Client connected!");
+
+            // Input and Output streams
+            BufferedReader serverInput = new BufferedReader(new InputStreamReader(System.in)); // Server input
+            BufferedReader clientInput = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Client input
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true); // Output to client
+            
+            String receive, send;
+
+            // Chat loop
+            while ((receive = clientInput.readLine()) != null) {
+                if (receive.equalsIgnoreCase("STOP")) { // STOP command to terminate
+                    System.out.println("Client disconnected.");
+                    break;
+                }
+                System.out.println("Client says: " + receive);
+                
+                System.out.print("Server says: ");
+                send = serverInput.readLine();
+                out.println(send); // Send the response to the client
+            }
+
+            // Close all resources
+            serverInput.close();
+            clientInput.close();
+            out.close();
+            socket.close();
+            serverSocket.close();
+
+            System.out.println("Server shut down.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+#ChatClient.java
+import java.net.*;
+import java.io.*;
+
+class ChatClient {
+    public static void main(String args[]) {
+        try {
+            // Connect to the server on localhost and port 8000
+            Socket socket = new Socket("localhost", 8000);
+            System.out.println("Connected to the server.");
+
+            // Input and Output streams
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); // Input from user
+            BufferedReader serverInput = new BufferedReader(new InputStreamReader(socket.getInputStream())); // Input from server
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true); // Output to server
+
+            String send, receive;
+
+            System.out.println("To stop chatting with the server, type STOP.");
+
+            // Chat loop
+            while (true) {
+                System.out.print("Client says: ");
+                send = userInput.readLine(); // Read message from user
+                out.println(send); // Send the message to the server
+
+                if (send.equalsIgnoreCase("STOP")) { // Check for termination command
+                    System.out.println("Disconnected from the server.");
+                    break;
+                }
+
+                receive = serverInput.readLine(); // Read response from the server
+                System.out.println("Server says: " + receive);
+            }
+
+            // Close all resources
+            userInput.close();
+            serverInput.close();
+            out.close();
+            socket.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

@@ -1,0 +1,126 @@
+Q) display current date and time.
+#RMIInterfaceDate.java
+import java.rmi.*;
+
+public interface RMIInterfaceDate extends Remote {
+    public String printDate() throws Exception;
+}
+
+#RMIServerDate.java
+import java.rmi.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.*;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
+public class RMIServerDate extends UnicastRemoteObject implements RMIInterfaceDate {
+    public RMIServerDate() throws Exception {
+        System.out.println("Server is initialised");
+    }
+    public String printDate() throws Exception {
+        Date d = new Date();
+        SimpleDateFormat myFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+        String myDate = myFormat.format(d);
+        System.out.println("Server: " + myDate);
+        return myDate;
+    }
+    public static void main(String[] args) throws Exception {
+        System.out.println("RMIServerDate started.");
+        try {
+            LocateRegistry.createRegistry(1101); 
+            System.out.println("RMI Registry started on port 1101");
+        } catch (RemoteException e) {
+            System.out.println("RMI Registry already running.");
+        }
+        RMIServerDate obj = new RMIServerDate();
+        Naming.bind("rmi://localhost:1101/RMIServerDate", obj);
+        System.out.println("Object registered.");
+    }
+}
+
+# RMIClientDate.java
+import java.rmi.*;
+public class RMIClientDate {
+    public static void main(String[] args) throws Exception {
+        System.out.println("RMIClientDate started.");        
+        RMIInterfaceDate server = (RMIInterfaceDate) Naming.lookup("rmi://localhost:1101/RMIServerDate");
+        String serverDate = server.printDate();      
+        System.out.println("Server: " + serverDate);
+    }
+}
+
+Q) coverts digits to words
+
+# InterConvert.java
+import java.rmi.*;
+public interface InterConvert extends Remote {
+public String convertDigit(String no) throws Exception;
+}
+
+# ServerConvert.java
+import java.rmi.*;
+import java.rmi.server.*;
+
+public class ServerConvert extends UnicastRemoteObject implements InterConvert {
+    public ServerConvert() throws Exception {
+    }
+
+    public String convertDigit(String no) throws Exception {
+        String str = "";
+        for (int i = 0; i < no.length(); i++) {
+            int p = no.charAt(i);
+            if (p == 48) {
+                str += "zero ";
+            }
+            if (p == 49) {
+                str += "one ";
+            }
+            if (p == 50) {
+                str += "two ";
+            }
+            if (p == 51) {
+                str += "three ";
+            }
+            if (p == 52) {
+                str += "four ";
+            }
+            if (p == 53) {
+                str += "five ";
+            }
+            if (p == 54) {
+                str += "six ";
+            }
+            if (p == 55) {
+                str += "seven ";
+            }
+            if (p == 56) {
+                str += "eight ";
+            }
+            if (p == 57) {
+                str += "nine ";
+            }
+        }
+        return str;
+    }
+
+    public static void main(String args[]) throws Exception {
+        ServerConvert s1 = new ServerConvert();
+        Naming.bind("Wrd", s1);
+        System.out.println("Object registered.	");
+    }
+}
+
+# ClientConvert.java
+import java.rmi.*;
+import java.io.*;
+
+public class ClientConvert {
+    public static void main(String args[]) throws Exception {
+        InterConvert h1 = (InterConvert) Naming.lookup("Wrd");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Enter a number : \t");
+        String no = br.readLine();
+        String ans = h1.convertDigit(no);
+        System.out.println("The word representation of the entered digit is : " + ans);
+    }
+}
